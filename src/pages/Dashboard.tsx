@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BookLogo, doodleBorder, doodleShadow, doodleHover, StarDoodle, CatDoodle } from '../components/Doodles';
-import { Upload, BookOpen, PenTool, Image as ImageIcon, FileText, CheckCircle, Bold, Italic, Underline, List, AlignLeft, AlignCenter, Link as LinkIcon, Eye, Heart } from 'lucide-react';
+import { Upload, BookOpen, PenTool, Image as ImageIcon, FileText, CheckCircle, Bold, Italic, Underline, List, Link as LinkIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [story, setStory] = useState('');
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -29,6 +31,22 @@ export default function Dashboard() {
     };
     fetchBooks();
   }, []);
+
+  // Load draft from Doodle Writing Board
+  useEffect(() => {
+    const draftTitle = sessionStorage.getItem('mentozy_draft_title');
+    const draftStory = sessionStorage.getItem('mentozy_draft_story');
+    if (draftTitle) {
+      setTitle(draftTitle);
+      sessionStorage.removeItem('mentozy_draft_title');
+    }
+    if (draftStory) {
+      setStory(draftStory);
+      sessionStorage.removeItem('mentozy_draft_story');
+      toast.success('Loaded draft from your Doodle Writing Board! 🎉');
+    }
+  }, []);
+
 
   const insertFormatting = (prefix: string, suffix: string = '') => {
     if (!textareaRef.current) return;
@@ -176,9 +194,21 @@ export default function Dashboard() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 text-xl font-black mb-1">
-                  <PenTool className="w-6 h-6" /> Write Your Story
-                </label>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                  <label className="flex items-center gap-2 text-xl font-black">
+                    <PenTool className="w-6 h-6" /> Write Your Story
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (title) sessionStorage.setItem('mentozy_draft_title', title);
+                      navigate('/writing-board');
+                    }}
+                    className={`px-4 py-2 bg-[#fbcfe8] text-black font-black text-xs uppercase tracking-wider ${doodleBorder} ${doodleHover} ${doodleShadow}`}
+                  >
+                    ✍️ Open Immersive Doodle Writing Board
+                  </button>
+                </div>
                 <div className={`bg-white ${doodleBorder} overflow-hidden flex flex-col focus-within:ring-4 ring-[#fef08a]/50 transition-shadow`}>
                   {/* Toolbar */}
                   <div className="bg-[#f3f4f6] border-b-2 border-black p-2 flex gap-2 overflow-x-auto">

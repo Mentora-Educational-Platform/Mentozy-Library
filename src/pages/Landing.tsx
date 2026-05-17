@@ -21,7 +21,7 @@ export default function Landing() {
   // Fetch Books
   useEffect(() => {
     const fetchBooks = async () => {
-      const { data, error } = await supabase.from('books').select('*').order('created_at', { ascending: false });
+      const { data } = await supabase.from('books').select('*').order('created_at', { ascending: false });
       if (data) {
         setResources(data);
       }

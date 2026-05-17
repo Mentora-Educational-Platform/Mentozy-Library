@@ -1,8 +1,8 @@
-import React from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { BookLogo, doodleBorder, doodleShadow, StarDoodle, CatDoodle, BeeDoodle } from '../components/Doodles';
-import { PenTool, UploadCloud, Globe, ArrowRight } from 'lucide-react';
+import { BookLogo, doodleBorder, StarDoodle, CatDoodle, BeeDoodle } from '../components/Doodles';
+import { PenTool, Globe, ArrowRight } from 'lucide-react';
+
 
 export default function HowItWorks() {
   const steps = [

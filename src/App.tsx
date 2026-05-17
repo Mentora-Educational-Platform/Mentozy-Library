@@ -3,6 +3,7 @@ import { Toaster } from 'sonner';
 import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import HowItWorks from './pages/HowItWorks';
+import WritingBoard from './pages/WritingBoard';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/how-it-works" element={<HowItWorks />} />
+          <Route path="/writing-board" element={<WritingBoard />} />
         </Routes>
       </Router>
     </>
@@ -20,3 +22,4 @@ function App() {
 }
 
 export default App;
+
