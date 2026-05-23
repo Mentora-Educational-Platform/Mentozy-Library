@@ -8,6 +8,7 @@ import {
   BeeDoodle, CatDoodle, StarDoodle, BookLogo, 
   doodleBorder, doodleShadow, doodleHover, pastelColors, getPastelColor 
 } from '../components/Doodles';
+import VirtualBookReader from '../components/VirtualBookReader';
 
 const categories = ['All', 'UX/UI', 'Illustration', 'Typography', 'Web Design'];
 
@@ -17,6 +18,7 @@ export default function Landing() {
   const [previewResource, setPreviewResource] = useState<any>(null);
   const [readingResource, setReadingResource] = useState<any>(null);
   const [resources, setResources] = useState<any[]>([]); // Initialize empty resources
+  const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
 
   // Fetch Books
   useEffect(() => {
@@ -64,6 +66,9 @@ export default function Landing() {
       return matchesCategory && matchesSearch;
   });
 
+  const activeBook = filteredItems.find(item => item.id === selectedBookId) || filteredItems[0];
+  const otherBooks = filteredItems.filter(item => item.id !== (activeBook?.id));
+
   return (
     <div className="pt-24 pb-32 bg-[#fffdfa] min-h-screen font-sans relative overflow-hidden transition-colors duration-300">
         {/* Background Doodles */}
@@ -95,12 +100,12 @@ export default function Landing() {
                 <Link to="/how-it-works" className="hover:text-blue-500 transition-colors">How it Works</Link>
                 <a href="#" className="hover:text-yellow-500 transition-colors">Download</a>
               </div>
-              <button 
-                onClick={() => setIsAuthOpen(true)}
-                className={`px-6 py-2 bg-black text-white font-bold ${doodleBorder} hover:scale-105 transition-transform`}
+              <Link 
+                to="/dashboard"
+                className={`px-6 py-2 bg-black text-white font-bold ${doodleBorder} hover:scale-105 transition-transform flex items-center justify-center`}
               >
                 Publish Now ↗
-              </button>
+              </Link>
             </motion.nav>
           )}
         </AnimatePresence>
@@ -184,89 +189,234 @@ export default function Landing() {
               </div>
 
               {/* Shelves */}
-              <div className="space-y-16 md:space-y-24 relative">
-                  {/* Decorative Sleeping Cat on the first shelf */}
+              <div className="relative">
+                  {/* Decorative Sleeping Cat above the shelf */}
                   <div className="absolute top-[-50px] right-[5%] z-20 hidden md:block">
                       <CatDoodle className="w-24 h-24" />
                   </div>
 
-                  {Array.from({ length: Math.ceil(filteredItems.length / 4) }).map((_, shelfIndex) => {
-                      const shelfItems = filteredItems.slice(shelfIndex * 4, (shelfIndex + 1) * 4);
-                      return (
-                          <div key={shelfIndex} className="relative pt-4 pb-0 px-2 md:px-10">
-                              <div className="relative z-10 flex flex-wrap justify-center gap-6 md:gap-12 lg:gap-16 items-end">
-                                  {shelfItems.map((item, index) => {
-                                      const bgColor = getPastelColor(index + shelfIndex * 4);
-
-                                      return (
-                                          <motion.div
-                                              key={item.id}
-                                              initial={{ opacity: 0, y: 20 }}
-                                              animate={{ opacity: 1, y: 0 }}
-                                              transition={{ duration: 0.4, delay: index * 0.1 }}
-                                              className={`group relative w-[160px] h-[220px] md:w-[200px] md:h-[280px] bg-white ${doodleBorder} shadow-[6px_6px_0px_#000] hover:-translate-y-4 hover:-translate-x-1 hover:shadow-[12px_12px_0px_#000] transition-all duration-300 flex flex-col overflow-hidden cursor-pointer`}
-                                              onClick={() => setPreviewResource(item)}
-                                          >
-                                              {/* Spine */}
-                                              <div className={`absolute left-0 top-0 bottom-0 w-6 ${bgColor} border-r-2 border-black flex items-center justify-center`}>
-                                                <div className="w-1 h-full bg-black/10 mx-auto"></div>
-                                              </div>
-
-                                              {/* Cover Image/Pattern */}
-                                              <div className="ml-6 flex-1 bg-cover bg-center border-b-2 border-black relative" style={{backgroundImage: `url(${item.cover_url})`}}>
-                                                <div className="absolute inset-0 bg-white/40"></div>
-                                                <div className="absolute top-2 right-2 bg-white border-2 border-black rounded-full p-1">
-                                                  {item.script_url?.endsWith('pdf') ? <FileText className="w-4 h-4" /> : <BookOpen className="w-4 h-4" />}
-                                                </div>
-                                              </div>
-
-                                              <div className="ml-6 p-3 bg-white h-[90px] flex flex-col justify-between">
-                                                  <h3 className="text-sm font-black text-black leading-tight line-clamp-2">
-                                                      {item.title}
-                                                  </h3>
-                                                  <p className="text-[10px] font-bold text-gray-500 uppercase">
-                                                      {item.pen_name}
-                                                  </p>
-                                              </div>
-
-                                              {/* Actions Overlay */}
-                                              <div className="absolute inset-0 bg-white/90 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-3 p-4 z-20">
-                                                  <button className={`w-full py-2 bg-[#bbf7d0] text-black text-sm font-bold flex items-center justify-center gap-2 ${doodleBorder}`}>
-                                                      <Download className="w-4 h-4" /> Read It
-                                                  </button>
-                                                  <div className="flex gap-2 w-full">
-                                                      <button className={`flex-1 py-2 flex items-center justify-center ${doodleBorder} bg-white text-black`}>
-                                                          <Heart className="w-4 h-4 hover:fill-rose-500 hover:text-rose-500" />
-                                                      </button>
-                                                      <button className={`flex-1 py-2 bg-white text-black flex items-center justify-center ${doodleBorder}`}>
-                                                          <Share2 className="w-4 h-4" />
-                                                      </button>
-                                                  </div>
-                                              </div>
-                                          </motion.div>
-                                      )
-                                  })}
-                              </div>
+                  {filteredItems.length > 0 && activeBook ? (
+                      <div className="flex flex-col lg:flex-row items-stretch gap-8 lg:gap-12 max-w-6xl mx-auto px-2 md:px-6">
+                          {/* 1. LEFT SIDE: Featured Book flat cover + metadata */}
+                          <div className={`flex-[1.2] flex flex-col md:flex-row gap-6 md:gap-8 items-center bg-[#fffdfa] p-6 md:p-8 ${doodleBorder} ${doodleShadow} relative`}>
                               
-                              {/* The Sketchy Shelf Line */}
-                              <div className="w-[110%] -ml-[5%] h-4 mt-2 relative opacity-100">
-                                  <div className="absolute top-2 left-0 w-full h-[3px] bg-black rounded-full"></div>
-                                  <div className="absolute top-3 left-2 w-[98%] h-[2px] bg-black rounded-full transform -rotate-[0.2deg]"></div>
-                                  <div className="absolute top-1 left-4 w-[95%] h-[1px] bg-black rounded-full transform rotate-[0.1deg]"></div>
+                              {/* 3D Flat Cover wrapper */}
+                              <div className="relative flex-shrink-0" style={{ perspective: '1000px' }}>
+                                  <motion.div
+                                      key={activeBook.id}
+                                      initial={{ opacity: 0, rotateY: 30, scale: 0.95 }}
+                                      animate={{ opacity: 1, rotateY: -10, scale: 1 }}
+                                      transition={{ duration: 0.6, ease: 'easeOut' }}
+                                      className="relative group w-[180px] h-[250px] md:w-[230px] md:h-[320px] rounded-r-lg border-4 border-black transition-all cursor-pointer hover:shadow-[16px_16px_0px_#000]"
+                                      style={{
+                                          transformStyle: 'preserve-3d',
+                                          boxShadow: '10px 10px 0px #000, 15px 15px 25px rgba(0,0,0,0.15)',
+                                          background: activeBook.cover_bg || 'linear-gradient(135deg, #fbcfe8, #ec4899)'
+                                      }}
+                                      onClick={() => {
+                                          if (activeBook.script_url) {
+                                              window.open(activeBook.script_url, '_blank');
+                                          } else if (activeBook.story) {
+                                              setReadingResource(activeBook);
+                                          } else {
+                                              toast.error('No content available for this book.');
+                                          }
+                                      }}
+                                  >
+                                      {/* Left spine shadow binding crease */}
+                                      <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-black/25 to-transparent border-r border-black/15 z-10 rounded-l-xs"></div>
+                                      
+                                      {/* Image Cover if URL exists */}
+                                      {activeBook.cover_url ? (
+                                          <div 
+                                              className="absolute inset-0 bg-cover bg-center rounded-r-xs flex flex-col justify-end p-4"
+                                              style={{ backgroundImage: `url(${activeBook.cover_url})` }}
+                                          >
+                                              <div className="absolute inset-0 bg-black/10 hover:bg-black/0 transition-colors rounded-r-xs"></div>
+                                              <div className="relative z-10 bg-white/95 border-2 border-black p-2 shadow-[2px_2px_0px_#000]">
+                                                  <h4 className="text-xs font-black text-black leading-tight truncate uppercase">{activeBook.title}</h4>
+                                                  <p className="text-[9px] font-bold text-gray-500 uppercase truncate mt-0.5">{activeBook.pen_name}</p>
+                                              </div>
+                                          </div>
+                                      ) : (
+                                          /* Typography Cover if no URL */
+                                          <div className="absolute inset-0 flex flex-col justify-between p-5 text-black">
+                                              <div className="flex flex-col gap-1">
+                                                  <span className="text-[10px] font-black uppercase tracking-wider bg-black text-white px-2 py-0.5 w-max rounded-full">{activeBook.category}</span>
+                                              </div>
+                                              <div className="my-auto">
+                                                  <h4 className="text-xl md:text-2xl font-black uppercase leading-tight tracking-tight border-b-2 border-black pb-2 line-clamp-3 select-none">{activeBook.title}</h4>
+                                                  <p className="text-xs font-bold uppercase mt-2 select-none">By {activeBook.pen_name}</p>
+                                              </div>
+                                              <div className="flex justify-between items-center text-[10px] font-black uppercase select-none">
+                                                  <span>Mentozy Library</span>
+                                                  <span>Vol. 1</span>
+                                              </div>
+                                          </div>
+                                      )}
+
+                                      {/* Neon Bookmark ribbon hanging out of bottom */}
+                                      <div className="absolute bottom-[-16px] left-8 w-4 h-6 bg-[#ec4899] border-2 border-black rounded-b-md transform -skew-x-12 z-20 shadow-[2px_2px_0px_rgba(0,0,0,0.2)]"></div>
+                                  </motion.div>
+                              </div>
+
+                              {/* Book Details Column */}
+                              <div className="flex-1 flex flex-col justify-center w-full">
+                                  <div className="flex items-center gap-3 mb-3">
+                                      <span className="px-3 py-1 font-black text-xs uppercase bg-[#bfdbfe] border-2 border-black shadow-[2px_2px_0px_#000]">
+                                          {activeBook.category}
+                                      </span>
+                                      {activeBook.script_url && (
+                                          <span className="px-3 py-1 font-black text-xs uppercase bg-[#bbf7d0] border-2 border-black shadow-[2px_2px_0px_#000] flex items-center gap-1">
+                                              <FileText className="w-3 h-3" /> PDF
+                                          </span>
+                                      )}
+                                  </div>
+
+                                  <h3 className="text-2xl md:text-3xl font-black text-black uppercase leading-tight mb-2">
+                                      {activeBook.title}
+                                  </h3>
+                                  <p className="text-sm font-bold text-gray-500 uppercase mb-4 border-b-2 border-black border-dashed pb-2">
+                                      Published by {activeBook.pen_name}
+                                  </p>
+
+                                  <p className="text-xs md:text-sm text-gray-600 font-medium line-clamp-4 mb-6 leading-relaxed bg-black/5 p-3 rounded-lg border-2 border-black border-dashed">
+                                      {activeBook.description || "An enchanting interactive sketchbook story written and published by our creator. Dive into their wonderful doodle world today!"}
+                                  </p>
+
+                                  <div className="flex flex-wrap items-center gap-3">
+                                      <button 
+                                          onClick={() => {
+                                              if (activeBook.script_url) {
+                                                  window.open(activeBook.script_url, '_blank');
+                                              } else if (activeBook.story) {
+                                                  setReadingResource(activeBook);
+                                              } else {
+                                                  toast.error('No content available for this book.');
+                                              }
+                                          }}
+                                          className={`flex-1 min-w-[140px] py-3 bg-[#fef08a] hover:bg-[#fde047] text-black font-black text-base flex items-center justify-center gap-2 ${doodleBorder} ${doodleShadow} ${doodleHover} transition-transform cursor-pointer`}
+                                      >
+                                          <BookOpen className="w-5 h-5" /> READ NOW
+                                      </button>
+                                      
+                                      <button 
+                                          onClick={() => toast.success('Added to your favorite shelf! ❤️')}
+                                          className={`px-4 py-3 bg-white hover:bg-gray-50 text-black flex items-center justify-center ${doodleBorder} ${doodleShadow} ${doodleHover} transition-transform cursor-pointer`}
+                                          title="Favorite"
+                                      >
+                                          <Heart className="w-5 h-5 hover:fill-rose-500 hover:text-rose-500 transition-colors" />
+                                      </button>
+
+                                      <button 
+                                          onClick={() => {
+                                              navigator.clipboard.writeText(window.location.href);
+                                              toast.success('Library link copied to clipboard! 🔗');
+                                          }}
+                                          className={`px-4 py-3 bg-white hover:bg-gray-50 text-black flex items-center justify-center ${doodleBorder} ${doodleShadow} ${doodleHover} transition-transform cursor-pointer`}
+                                          title="Share"
+                                      >
+                                          <Share2 className="w-5 h-5" />
+                                      </button>
+                                  </div>
                               </div>
                           </div>
-                      );
-                  })}
-              </div>
 
-              {filteredItems.length === 0 && (
-                  <div className={`text-center py-20 bg-white ${doodleBorder} ${doodleShadow} max-w-2xl mx-auto`}>
-                      <Search className="w-12 h-12 text-black mx-auto mb-6" />
-                      <h3 className="text-3xl font-black text-black mb-4">Nothing found</h3>
-                      <p className="text-xl text-gray-600 font-medium mb-6">Looks like this section is empty. Try a different search!</p>
-                  </div>
-              )}
+                          {/* 2. RIGHT SIDE: 3D Spines Rack standing on a shelf */}
+                          <div className={`flex-1 flex flex-col justify-between bg-[#f7f5ed] border-4 border-black p-4 relative ${doodleShadow}`}>
+                              <div className="text-xs font-black uppercase text-gray-500 tracking-wider mb-2 px-2 border-b-2 border-black/10 pb-2">
+                                  📚 More Books on Shelf ({otherBooks.length})
+                              </div>
+
+                              {/* Spines flexbox row with horizontal scroll */}
+                              <div className="flex gap-4 items-end overflow-x-auto py-6 px-4 min-h-[300px] scrollbar-thin scrollbar-thumb-black scrollbar-track-transparent">
+                                  {otherBooks.map((item, index) => {
+                                      const bgColor = getPastelColor(index);
+                                      const spineBg = item.cover_bg || `linear-gradient(to bottom, ${bgColor}, ${bgColor})`;
+
+                                      return (
+                                          <div 
+                                              key={item.id}
+                                              className="relative group cursor-pointer flex-shrink-0 transition-all duration-300"
+                                              style={{ perspective: '800px' }}
+                                              onClick={() => setSelectedBookId(item.id)}
+                                          >
+                                              {/* 3D Spine Book */}
+                                              <div 
+                                                  className="w-[45px] md:w-[58px] h-[200px] md:h-[275px] border-2 border-black rounded-xs transition-all duration-300 group-hover:translate-z-[12px] group-hover:rotateY(-10deg) group-hover:scale-105 select-none relative"
+                                                  style={{
+                                                      transformStyle: 'preserve-3d',
+                                                      transformOrigin: 'left center',
+                                                      transform: 'rotateY(-28deg) rotateX(1deg) translateZ(0)',
+                                                      background: spineBg,
+                                                      boxShadow: '3px 5px 0px #000, 6px 10px 12px rgba(0,0,0,0.18)'
+                                                  }}
+                                              >
+                                                  {/* Spine hinge crease line */}
+                                                  <div className="absolute left-2.5 top-0 bottom-0 w-[2px] bg-black/15 shadow-[1px_0_1px_rgba(255,255,255,0.15)] z-10"></div>
+                                                  
+                                                  {/* Paper pages top sliver */}
+                                                  <div className="absolute top-0 left-0 right-0 h-1 bg-gray-100 border-b border-black/25 z-10 rounded-t-xs"></div>
+                                                  
+                                                  {/* Paper pages bottom sliver */}
+                                                  <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-100 border-t border-black/25 z-10 rounded-b-xs"></div>
+                                                  
+                                                  {/* Cylindrical lighting overlay gradient */}
+                                                  <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-transparent to-white/20 rounded-xs pointer-events-none"></div>
+
+                                                  {/* Vertical Text writing-mode */}
+                                                  <div 
+                                                      className="flex items-center justify-between h-full py-5 px-1.5 text-white font-extrabold text-[10px] md:text-[11px] uppercase tracking-wide leading-none whitespace-nowrap select-none"
+                                                      style={{
+                                                          writingMode: 'vertical-rl',
+                                                          transform: 'rotate(180deg)',
+                                                          textShadow: '1px 1px 2px rgba(0,0,0,0.4)'
+                                                      }}
+                                                  >
+                                                      <span className="truncate max-h-[110px] md:max-h-[160px]">
+                                                          {item.title}
+                                                      </span>
+                                                      <span className="mx-1 opacity-60">•</span>
+                                                      <span className="truncate opacity-80 text-[8px] md:text-[9px]">
+                                                          {item.pen_name}
+                                                      </span>
+                                                  </div>
+                                              </div>
+                                          </div>
+                                      )
+                                  })}
+
+                                  {otherBooks.length === 0 && (
+                                      <div className="w-full flex flex-col items-center justify-center text-center p-6 bg-black/5 rounded-lg border-2 border-dashed border-black/20 my-auto py-12">
+                                          <BookOpen className="w-8 h-8 text-black/30 mb-2" />
+                                          <p className="text-xs font-black uppercase text-black/50">Only one book published in this shelf!</p>
+                                      </div>
+                                  )}
+                              </div>
+
+                              {/* Physical Wood Board Shelf under the spines */}
+                              <div className="w-[108%] -ml-[4%] h-5 bg-[#e6c280] border-t-4 border-b-4 border-black relative z-10 shadow-[0_5px_10px_rgba(0,0,0,0.15)] flex items-center">
+                                  <div className="absolute left-1/4 right-1/4 h-[2px] bg-black/10"></div>
+                              </div>
+                          </div>
+                      </div>
+                  ) : (
+                      <div className={`text-center py-20 bg-white ${doodleBorder} ${doodleShadow} max-w-2xl mx-auto`}>
+                          <Search className="w-12 h-12 text-black mx-auto mb-6" />
+                          <h3 className="text-3xl font-black text-black mb-4">Nothing found</h3>
+                          <p className="text-xl text-gray-600 font-medium mb-6">Looks like this category has no books. Try another tab or add some books!</p>
+                      </div>
+                  )}
+
+                  {/* Physical Wood Board Shelf under the whole dual area */}
+                  {filteredItems.length > 0 && activeBook && (
+                      <div className="w-[110%] -ml-[5%] h-6 bg-[#d97706]/20 border-t-4 border-black mt-8 relative opacity-100 flex items-center">
+                          <div className="absolute top-2 left-0 w-full h-[3px] bg-black rounded-full"></div>
+                          <div className="absolute top-3 left-2 w-[98%] h-[2px] bg-black rounded-full transform -rotate-[0.2deg]"></div>
+                      </div>
+                  )}
             </div>
+        </div>
 
             {/* Preview Modal */}
             <AnimatePresence>
@@ -335,42 +485,10 @@ export default function Landing() {
             {/* Reading Modal */}
             <AnimatePresence>
                 {readingResource && (
-                    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 md:p-10">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                            onClick={() => setReadingResource(null)}
-                        />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className={`relative bg-[#fffdfa] p-8 md:p-12 w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col gap-6 ${doodleBorder} shadow-[15px_15px_0px_#000]`}
-                            style={{
-                              backgroundImage: 'repeating-linear-gradient(transparent, transparent 31px, #e5e7eb 31px, #e5e7eb 32px)',
-                              lineHeight: '32px',
-                              paddingTop: '32px'
-                            }}
-                        >
-                            <button
-                                onClick={() => setReadingResource(null)}
-                                className={`fixed top-6 right-6 md:absolute md:-right-3 md:-top-3 w-12 h-12 bg-[#fbcfe8] text-black flex items-center justify-center z-50 ${doodleBorder} hover:scale-110 transition-transform font-bold text-xl`}
-                            >
-                                x
-                            </button>
-
-                            <div className="bg-white/80 backdrop-blur-sm p-6 mb-8 border-b-4 border-black border-dashed inline-block self-start">
-                              <h2 className="text-4xl md:text-5xl font-black mb-2">{readingResource.title}</h2>
-                              <p className="text-xl font-bold text-gray-600">By {readingResource.pen_name}</p>
-                            </div>
-
-                            <div className="font-medium text-lg md:text-xl whitespace-pre-wrap px-4">
-                              {readingResource.story}
-                            </div>
-                        </motion.div>
-                    </div>
+                    <VirtualBookReader 
+                      book={readingResource} 
+                      onClose={() => setReadingResource(null)} 
+                    />
                 )}
             </AnimatePresence>
 
