@@ -20,12 +20,23 @@ export default function Landing() {
   const [resources, setResources] = useState<any[]>([]); // Initialize empty resources
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
 
-  // Fetch Books
+  // Fetch Books and handle custom shared book query
   useEffect(() => {
     const fetchBooks = async () => {
       const { data } = await supabase.from('books').select('*').order('created_at', { ascending: false });
       if (data) {
         setResources(data);
+        
+        // Parse URL query parameter for pre-loaded book sharing
+        const params = new URLSearchParams(window.location.search);
+        const sharedBookId = params.get('book');
+        if (sharedBookId) {
+          const sharedBook = data.find(b => b.id === sharedBookId);
+          if (sharedBook) {
+            setSelectedBookId(sharedBookId);
+            setReadingResource(sharedBook);
+          }
+        }
       }
     };
     fetchBooks();
@@ -310,8 +321,9 @@ export default function Landing() {
 
                                       <button 
                                           onClick={() => {
-                                              navigator.clipboard.writeText(window.location.href);
-                                              toast.success('Library link copied to clipboard! 🔗');
+                                              const shareUrl = `${window.location.origin}${window.location.pathname}?book=${activeBook.id}`;
+                                              navigator.clipboard.writeText(shareUrl);
+                                              toast.success('Shareable book link copied to clipboard! 🔗');
                                           }}
                                           className={`px-4 py-3 bg-white hover:bg-gray-50 text-black flex items-center justify-center ${doodleBorder} ${doodleShadow} ${doodleHover} transition-transform cursor-pointer`}
                                           title="Share"

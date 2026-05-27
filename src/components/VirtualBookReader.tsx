@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { toast } from 'sonner';
 import { 
   ArrowLeft, ArrowRight, X, BookOpen, Heart, Share2, CornerDownRight 
 } from 'lucide-react';
@@ -474,10 +475,20 @@ export default function VirtualBookReader({ book, onClose }: VirtualBookReaderPr
                             Thank you for reading "{book.title}"! Give this story a like or share it with fellow doodle lovers.
                           </p>
                           <div className="flex gap-3 mt-6">
-                            <button className="p-3 bg-pink-100 hover:bg-pink-200 border-2 border-black rounded-xl transition-all shadow-[2px_2px_0px_#000]">
-                              <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
+                            <button 
+                              onClick={() => toast.success('Liked! Thank you for supporting the author! ❤️')}
+                              className="p-3 bg-pink-100 hover:bg-pink-200 border-2 border-black rounded-xl transition-all shadow-[2px_2px_0px_#000] cursor-pointer"
+                            >
+                              <Heart className="w-5 h-5 text-rose-500 fill-rose-500 animate-pulse" />
                             </button>
-                            <button className="p-3 bg-white hover:bg-gray-100 border-2 border-black rounded-xl transition-all shadow-[2px_2px_0px_#000]">
+                            <button 
+                              onClick={() => {
+                                const shareUrl = `${window.location.origin}${window.location.pathname}?book=${book.id}`;
+                                navigator.clipboard.writeText(shareUrl);
+                                toast.success('Shareable book link copied to clipboard! 🔗');
+                              }}
+                              className="p-3 bg-white hover:bg-gray-100 border-2 border-black rounded-xl transition-all shadow-[2px_2px_0px_#000] cursor-pointer"
+                            >
                               <Share2 className="w-5 h-5" />
                             </button>
                           </div>
