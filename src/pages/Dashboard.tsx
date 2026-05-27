@@ -104,8 +104,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchBooks = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       const { data } = await supabase.from('books').select('*').order('created_at', { ascending: false });
-      if (data) setPublishedBooks(data);
+      if (data && user) {
+        const userPublishedIds = user.user_metadata?.published_book_ids || [];
+        const myBooks = data.filter(book => userPublishedIds.includes(book.id));
+        setPublishedBooks(myBooks);
+      }
     };
     fetchBooks();
   }, []);
@@ -253,11 +258,25 @@ export default function Dashboard() {
         script_url: scriptUrl
       };
 
-      const { error: dbError } = await supabase.from('books').insert([newBook]);
+      const { data: insertedRows, error: dbError } = await supabase.from('books').insert([newBook]).select();
 
       if (dbError) throw dbError;
 
-      setPublishedBooks([newBook, ...publishedBooks]);
+      const insertedBook = insertedRows?.[0];
+      if (insertedBook) {
+        // Sync to user metadata
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const existingIds = user.user_metadata?.published_book_ids || [];
+          const updatedIds = [...existingIds, insertedBook.id];
+          await supabase.auth.updateUser({
+            data: { published_book_ids: updatedIds }
+          });
+        }
+        setPublishedBooks([insertedBook, ...publishedBooks]);
+      } else {
+        setPublishedBooks([newBook, ...publishedBooks]);
+      }
 
       toast.success(`"${title}" has been published to the library!`);
       setTitle('');
